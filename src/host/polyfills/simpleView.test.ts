@@ -62,7 +62,7 @@ describe("simpleView", () => {
         const result = apply.applyCommandMenuPatch(fileContents);
         expect(result).not.toEqual(null);
         expect(result).toEqual(
-            expect.stringContaining("this.getApprovedTabs((networkSettings)"));
+            expect.stringContaining("Root.Runtime.extensionSettings.get('networkEnabled');"));
     });
 
     it("applyInspectorViewPatch correctly changes _showDrawer text", async () => {
@@ -286,29 +286,11 @@ describe("simpleView", () => {
         if (!fileContents) {
             throw new Error(`Could not find file: ${filePath}`);
         }
-        const expectedResult = "function init(theme)";
-        const expectedResult2 = "if(theme){themeSetting.set(theme);}";
+        const expectedResult = "Root.Runtime.extensionSettings.get('theme');";
         const apply = await import("./simpleView");
         const result = apply.applyThemePatch(fileContents);
         expect(result).not.toEqual(null);
         expect(result).toEqual(expect.stringContaining(expectedResult));
-        expect(result).toEqual(expect.stringContaining(expectedResult2));
-    });
-
-    it("applyMainThemePatch correctly modifes main.js to pass in themes from settings", async () => {
-        const filePath = "main/main.js";
-        const fileContents = getTextFromFile(filePath);
-        if (!fileContents) {
-            throw new Error(`Could not find file: ${filePath}`);
-        }
-
-        const expectedResult = "resolve(theme);";
-        const expectedResult2 = "await this.getThemePromise()";
-        const apply = await import("./simpleView");
-        const result = apply.applyMainThemePatch(fileContents);
-        expect(result).not.toEqual(null);
-        expect(result).toEqual(expect.stringContaining(expectedResult));
-        expect(result).toEqual(expect.stringContaining(expectedResult2));
     });
 
     it("applyDefaultTabPatch correctly modifies text to prevent usage of TabbedLocation._defaultTab", async () => {
@@ -337,5 +319,49 @@ describe("simpleView", () => {
         const result = apply.applyRemovePreferencePatch(fileContents);
         expect(result).not.toEqual(null);
         expect(result).toEqual(expect.stringContaining(expectedResult));
+    });
+
+    it("applyCreateExtensionSettingsPatch correctly changes root.js to include extensionSettings global const", async () => {
+        const filePath = "root/root.js";
+        const fileContents = getTextFromFile(filePath);
+        if (!fileContents) {
+            throw new Error(`Could not find file: ${filePath}`);
+        }
+
+        const expectedResult = "extensionSettings:extensionSettings";
+        const apply = await import("./simpleView");
+        const result = apply.applyCreateExtensionSettingsPatch(fileContents);
+        expect(result).not.toEqual(null);
+        expect(result).toEqual(expect.stringContaining(expectedResult));
+    });
+
+    it("applyCreateExtensionSettingsLegacyPatch correctly changes root-legacy.js to include extensionSettings glbal const", async () => {
+        const filePath = "root/root-legacy.js";
+        const fileContents = getTextFromFile(filePath);
+        if (!fileContents) {
+            throw new Error(`Could not find file: ${filePath}`);
+        }
+
+        const expectedResult = "Root.Runtime.extensionSettings";
+        const apply = await import("./simpleView");
+        const result = apply.applyCreateExtensionSettingsLegacyPatch(fileContents);
+        expect(result).not.toEqual(null);
+        expect(result).toEqual(expect.stringContaining(expectedResult));
+    });
+
+    it("applyPortSettingsPatch correctly changes root.js to set extensionSettings map", async () => {
+        const filePath = "root/root.js";
+        const fileContents = getTextFromFile(filePath);
+        if (!fileContents) {
+            throw new Error(`Could not find file: ${filePath}`);
+        }
+
+        const expectedResult = "this.getNetworkSetting";
+        const expectedResult2 = "this.getThemesSetting";
+        const apply = await import("./simpleView");
+        const result = apply.applyPortSettingsPatch(fileContents);
+        expect(result).not.toEqual(null);
+        expect(result).toEqual(expect.stringContaining(expectedResult));
+        expect(result).toEqual(expect.stringContaining(expectedResult2));
     });
 });
